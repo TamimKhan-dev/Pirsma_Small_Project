@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import config from "./config";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import { prisma } from "./lib/prisma";
 
 const app: Application = express();
 
@@ -14,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 
-app.get('/', (req: Request, res: Response) => {
+app.get('/', async (req: Request, res: Response) => {
     res.status(200).json({
         message: `Express Server is running on Port: ${config.port}`,
         author: 'Tamim Khan',
