@@ -48,6 +48,9 @@ const registerUserIntoDB = async (payload: RegisterUserPayload) => {
   return user;
 }
 
+const getMyProfileFromDB = async () => {};
+
 export const userService = {
     registerUserIntoDB,
+    getMyProfileFromDB
 }

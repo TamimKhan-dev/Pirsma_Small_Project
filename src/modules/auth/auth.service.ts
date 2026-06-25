@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import { prisma } from "../../lib/prisma";
 import { ILoginUser } from "./auth.interface";
-import jwt, { SignOptions } from "jsonwebtoken";
+import { SignOptions } from "jsonwebtoken";
 import config from "../../config";
 import { jwtUtils } from "../../utils/jwt";
 
@@ -37,7 +37,6 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   //   const refreshToken = jwt.sign(jwtPayload, config.jwt_refresh_secret, {
   //     expiresIn: config.jwt_refresh_expires_in,
   //   } as SignOptions);
-
   const refreshToken = jwtUtils.createToken(
     jwtPayload,
     config.jwt_refresh_secret,

@@ -50,6 +50,11 @@ const registerUser = catchAync(
   },
 );
 
+const getMyProfile = catchAync(async (req: Request, res: Response, next: NextFunction) => {
+
+});
+
 export const userController = {
   registerUser,
+  getMyProfile
 };
