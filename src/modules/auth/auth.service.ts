@@ -13,8 +13,8 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   });
 
   if (user.activeStatus === "BLOCKED") {
-      throw new Error("Your account has been blocked. Please contact support.");
-    }
+    throw new Error("Your account has been blocked. Please contact support.");
+  }
 
   const isPasswordMatched = await bcrypt.compare(password, user.password);
 
@@ -53,6 +53,43 @@ const loginUserIntoDB = async (payload: ILoginUser) => {
   };
 };
 
+const refreshToken = async (refreshToken: string) => {
+  const verifiedRefreshToken = jwtUtils.verifyToken(
+    refreshToken,
+    config.jwt_refresh_secret,
+  );
+
+  if (!verifiedRefreshToken.success) {
+    throw new Error(verifiedRefreshToken.error);
+  }
+
+  const { id } = verifiedRefreshToken.data as { id: string };
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id },
+  });
+
+  if (user.activeStatus === "BLOCKED") {
+    throw new Error("User is blocked");
+  }
+
+  const jwtPayload = {
+    id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
+
+  const accessToken = jwtUtils.createToken(
+    jwtPayload,
+    config.jwt_access_secret,
+    config.jwt_access_expires_in as SignOptions,
+  );
+
+  return { accessToken };
+};
+
 export const authService = {
   loginUserIntoDB,
+  refreshToken,
 };
