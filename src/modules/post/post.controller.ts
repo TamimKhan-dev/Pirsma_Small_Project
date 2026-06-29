@@ -73,11 +73,55 @@ const getPostById = catchAsync(
 );
 
 const updatePost = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const authorId = req.user?.id;
+    const isAdmin = req.user?.role === "ADMIN";
+
+    const postId = req.params.postId;
+    if (!postId) {
+      throw new Error("Post ID is required In Params");
+    }
+    const payload = req.body;
+
+    const result = await postService.updatePostInDB(
+      postId as string,
+      payload,
+      authorId as string,
+      isAdmin,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Post Updated successfully",
+      data: result,
+    });
+  },
 );
 
 const deletePost = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const authorId = req.user?.id;
+    const isAdmin = req.user?.role === "ADMIN";
+
+    const postId = req.params.postId;
+    if (!postId) {
+      throw new Error("Post ID is required In Params");
+    }
+
+    await postService.deletePostFromDB(
+      postId as string,
+      authorId as string,
+      isAdmin,
+    );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "Post Deleted successfully",
+      data: null,
+    });
+  },
 );
 
 export const postController = {
