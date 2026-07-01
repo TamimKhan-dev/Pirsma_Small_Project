@@ -1,3 +1,4 @@
+import { CommentStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { ICreatePostPayload, IUpdatePostPayload } from "./post.interface";
 
@@ -44,17 +45,71 @@ const getMyPostsFromDB = async (authorId: string) => {
 };
 
 const getPostByIdFromDB = async (postId: string) => {
-  const post = await prisma.post.findUniqueOrThrow({
-    where: { id: postId },
+  // await prisma.post.update({
+  //   where: { id: postId },
+  //   data: { views: { increment: 1 } },
+  // });
+
+  // const post = await prisma.post.findUniqueOrThrow({
+  //   where: {
+  //     id: postId,
+  //   },
+  //   include: {
+  //     author: {
+  //       omit: {
+  //         password: true,
+  //       },
+  //     },
+  //     comments: {
+  //       where: {
+  //         status: CommentStatus.APPROVED,
+  //       },
+  //       orderBy: {
+  //         createdAt: "desc",
+  //       },
+  //     },
+  //     _count: {
+  //       select: { comments: true },
+  //     },
+  //   },
+  // });
+
+  // return post;
+
+  const transactionResult = await prisma.$transaction(async (tx) => {
+    await tx.post.update({
+      where: { id: postId },
+      data: { views: { increment: 1 } },
+    });
+
+    const post = await tx.post.findUniqueOrThrow({
+      where: {
+        id: postId,
+      },
+      include: {
+        author: {
+          omit: {
+            password: true,
+          },
+        },
+        comments: {
+          where: {
+            status: CommentStatus.APPROVED,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        _count: {
+          select: { comments: true },
+        },
+      },
+    });
+
+    return post;
   });
 
-  const updatedPost = await prisma.post.update({
-    where: { id: postId },
-    data: { views: { increment: 1 } },
-    include: { author: { omit: { password: true } }, comments: true },
-  });
-
-  return updatedPost;
+  return transactionResult;
 };
 
 const updatePostInDB = async (
@@ -92,7 +147,6 @@ const deletePostFromDB = async (
   const result = await prisma.post.delete({
     where: { id: postId },
   });
-
 };
 
 export const postService = {
